@@ -1,4 +1,5 @@
 package edu.miracosta.cs113;
+
 import java.util.*;
 
 public class DoubleLinkedList<E> extends AbstractSequentialList<E>
@@ -11,17 +12,15 @@ public class DoubleLinkedList<E> extends AbstractSequentialList<E>
   
     public void add(int index, E obj)
  { // Fill Here 
-	  ListIter iter = new ListIter(index);
-      iter.add(obj);
-      size++;
+    	
+	  listIterator(index).add(obj);
  }
   
   	public void addFirst(E obj)
  { 
 	  // Fill Here
-	  Node<E> node = new Node<E> (obj);
-      node.next = mHead;
-      node = mHead;
+  	  ListIter iter = new ListIter(0);
+  	  iter.set(obj);
       size++;
  }
   	
@@ -70,45 +69,51 @@ public class DoubleLinkedList<E> extends AbstractSequentialList<E>
  {
 	  return size;
  }
-
-
+  	
   	public E remove(int index)
  {      E returnValue = null;
-        ListIterator<E> iter = listIterator(index);
-        if (iter.hasNext())
- {   returnValue = iter.next();
-            iter.remove();
+  	        ListIterator<E> iter = listIterator(index);
+  	        if (iter.hasNext())
+ {        returnValue = iter.next();
+  	            iter.remove();
  }
-        else 
+  	        else 
  {  
-        throw new IndexOutOfBoundsException(); 
+  	        throw new IndexOutOfBoundsException(); 
  }
-        return returnValue;
+  	        return returnValue;
+ }
+  	
+  	public void clear()
+ {
+  	    	  mHead = null;
+  	          mTail = null;
+  	          size = 0;
  }
 
-  	public Iterator iterator()
+  	public ListIterator<E> iterator()
  { 
   		return new ListIter(0); 
  }
   	
-  	public ListIterator listIterator() 
+  	public ListIterator<E> listIterator() 
  {
   		return new ListIter(0); 
  }
   	
-  	public ListIterator listIterator(int index)
+  	public ListIterator<E> listIterator(int index)
  {
   		return new ListIter(index);
  }
   	
-  	public ListIterator listIterator(ListIterator iter)
+  	public ListIterator<E> listIterator(ListIterator<E> iter)
  {    
   		return new ListIter( (ListIter) iter);
  }
 
   // Inner Classes
   	private static class Node<E>
- {      public Node mNext;
+ {     
         private E data;
         private Node<E> next = null;
         private Node<E> prev = null;
@@ -139,12 +144,18 @@ public class DoubleLinkedList<E> extends AbstractSequentialList<E>
  
         if (i == size)     // Special case of last item
  {   
-        	index = size;     nextItem = null;    
+        	index = size;     
+        	nextItem = null;    
  }
         else          // start at the beginning
  {  
         	nextItem = mHead;
-        for (index = 0; index < i; index++)  nextItem = nextItem.next; 
+        for (index = 0; index < i; index++)  
+ {
+        	
+        	nextItem = nextItem.next; 
+        	
+ }
             
  }			// end else
  }       // end constructor
@@ -152,6 +163,7 @@ public class DoubleLinkedList<E> extends AbstractSequentialList<E>
     public ListIter(ListIter other)
  {  
     	nextItem = other.nextItem;
+    	lastItemReturned = other.lastItemReturned;
         index = other.index;    
  }
 
@@ -163,7 +175,7 @@ public class DoubleLinkedList<E> extends AbstractSequentialList<E>
     public boolean hasPrevious()
  {  
     	//check if head is null
-    	if (mHead == null)
+    	if (size == 0)
     		return false;
     	
     	//check that current object exists
@@ -197,39 +209,29 @@ public class DoubleLinkedList<E> extends AbstractSequentialList<E>
     public void remove()
  {
     	  // if list is empty or no item was returned
-        if (isEmpty() || lastItemReturned == null)
+        if (lastItemReturned == null)
  {
             throw new IllegalStateException();
  }
-        else
- {
-            // only one node in list
-            if (size() == 1)
- {
-                mHead = null;
+        if (lastItemReturned == mHead) {//if we are trying to remove the head
+    		mHead = nextItem;
+    		mHead.prev = null;
+    		
  }
+        else if(lastItemReturned == mTail) {//trying to remove the tail
+    		lastItemReturned.prev.next = null;
+    		mTail = lastItemReturned.prev;
+    		mTail.next = null;
 
-            // first node in list
-            else if (lastItemReturned.prev == null)
- {
-                mHead = nextItem;
-                lastItemReturned.next.prev = null;
  }
-            // last node in list
-            else if (lastItemReturned.next == null)
- {
-                lastItemReturned.prev.next = null;
+        else if (lastItemReturned != mHead && lastItemReturned != mTail){
+    		lastItemReturned.next.prev = lastItemReturned.prev;
+    		lastItemReturned.prev.next = lastItemReturned.next;
+ }	
+    		size--;
+    		index--;
  }
-            else // everything else in between
- {
-                lastItemReturned.prev.next = lastItemReturned.next;
-                lastItemReturned.next.prev = lastItemReturned.prev;
- }
-            size--;
-            lastItemReturned = null;
- }
- }      
-
+    
     //move the iterator forward and return the next item
     public E next()
  {  
@@ -238,6 +240,8 @@ public class DoubleLinkedList<E> extends AbstractSequentialList<E>
  {
     		throw new NoSuchElementException();
  }
+    	else
+ {
     	// previous is moved up
     	lastItemReturned = nextItem;
     	// next item is moved up one spot
@@ -245,6 +249,7 @@ public class DoubleLinkedList<E> extends AbstractSequentialList<E>
     	// increases index
     	index++;
         return lastItemReturned.data; 
+ }
  }
 
     public E previous() 
@@ -269,10 +274,11 @@ public class DoubleLinkedList<E> extends AbstractSequentialList<E>
     	index--;
     	return lastItemReturned.data;
  }
+    
 
     public void add(E obj)
  {
-    	 Node<E> newNode;
+    	  //newNode;
     	 
     	if (mHead == null)
  {
@@ -286,7 +292,7 @@ public class DoubleLinkedList<E> extends AbstractSequentialList<E>
     	(nextItem == mHead)
  {
     		//create a new node
-    		newNode = new Node<E>(obj);
+    		Node<E> newNode = new Node<E>(obj);
     		//link it to the next item
     		newNode.next = nextItem;
     		//link nextItem to the new node
@@ -299,7 +305,7 @@ public class DoubleLinkedList<E> extends AbstractSequentialList<E>
     	 (nextItem == null)
  {
     		 //create a new node
-    		 newNode = new Node<E>(obj);
+    		 Node<E> newNode = new Node<E>(obj);
     		 // link the tail to the new node
     		 mTail.next = newNode;
     		 // link the new node to the tail
@@ -312,16 +318,26 @@ public class DoubleLinkedList<E> extends AbstractSequentialList<E>
  {
     		 //insert into the middle
     		 //create a new node
-    		 newNode = new Node<E>(obj);
+    		 Node<E> newNode = new Node<E>(obj);
     		 //link it to the nextItem.prev
     		 newNode.prev = nextItem.prev;
     		 nextItem.prev.next = newNode;
     		 // link it to the nextItem
     		 newNode.next = nextItem;
     		 nextItem.prev = newNode;
+    		 
+    		 
  }
-    	 
+    	size++;
+    	index++;
+    
+ 
+    	
     	
     	}
   }// end of inner class ListIter
 }// end of class DoubleLinkedList
+
+
+    
+    
